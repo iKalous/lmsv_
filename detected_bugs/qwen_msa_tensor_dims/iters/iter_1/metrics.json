@@ -1,0 +1,22 @@
+{
+  "pta": {
+    "loss": null,
+    "memory": 0.0,
+    "time": 75941.0
+  },
+  "msa": {
+    "loss": null,
+    "memory": null,
+    "time": null
+  },
+  "analysis": {
+    "loss_match": true,
+    "loss_diff": 0.0,
+    "memory_diff": 0.0,
+    "time_diff": 0.0,
+    "issues": [
+      "Traceback (most recent call last):\n[rank0]:   File \"/shared/lm-sv/mm-new/MindSpeed-MM/inference_vlm.py\", line 37, in <module>\n[rank0]:     main()\n[rank0]:   File \"/shared/lm-sv/mm-new/MindSpeed-MM/inf"
+    ]
+  },
+  "timestamp": "2026-04-10T17:15:55.708251"
+}

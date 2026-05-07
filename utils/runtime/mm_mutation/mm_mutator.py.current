@@ -1,0 +1,469 @@
+#!/usr/bin/env python3
+"""
+多模态配置变异器
+基于 MindSpeed-MM net_mutation 迁移适配
+用于Task6多模态整网变异和验证
+"""
+
+import copy
+import json
+import math
+import os
+import random
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+
+# 设置随机种子
+random.seed(42)
+np.random.seed(42)
+
+
+class MMConfigMutator:
+    """多模态配置变异器"""
+
+    def __init__(self, output_dir: str = "./mutated_mm_configs"):
+        """
+        初始化多模态配置变异器
+
+        Args:
+            output_dir: 输出目录
+        """
+        self.output_dir = output_dir
+        os.makedirs(output_dir, exist_ok=True)
+
+        # 增量变异状态管理
+        self.incremental_configs = {}  # 存储每个节点的增量变异配置 {node_id: config}
+        self.mutation_history = {}  # 存储每个节点的变异历史 {node_id: [mutation_records]}
+        self.current_round = 0  # 当前变异轮次
+
+        print(f"✓ MM配置变异器初始化完成")
+        print(f"  输出目录: {output_dir}")
+        print(f"  增量变异支持: 启用")
+
+    def reset_incremental_state(self):
+        """重置增量变异状态，开始新的变异序列"""
+        self.incremental_configs.clear()
+        self.mutation_history.clear()
+        self.current_round = 0
+        print("✓ 增量变异状态已重置")
+
+    def set_base_config_for_node(self, node_id: int, base_config: Dict[str, Any]):
+        """
+        为指定节点设置基础配置（用于初始轮次）
+
+        Args:
+            node_id: 节点ID
+            base_config: 基础配置
+        """
+        self.incremental_configs[node_id] = base_config.copy()
+        if node_id not in self.mutation_history:
+            self.mutation_history[node_id] = []
+        print(f"✓ 为节点 {node_id} 设置基础配置")
+
+    def get_incremental_config(self, node_id: int) -> Optional[Dict[str, Any]]:
+        """
+        获取指定节点的增量变异配置
+
+        Args:
+            node_id: 节点ID
+
+        Returns:
+            增量的配置，如果不存在则返回None
+        """
+        return self.incremental_configs.get(node_id)
+
+    def get_mutation_history(self, node_id: int) -> List[Dict[str, Any]]:
+        """
+        获取指定节点的变异历史
+
+        Args:
+            node_id: 节点ID
+
+        Returns:
+            变异历史列表
+        """
+        return self.mutation_history.get(node_id, [])
+
+    def mutate_predict_config(self, base_config: Dict[str, Any] = None,
+                              mutation_rate: float = 1,
+                              model_type: str = 'stdit3',
+                              model_num: int = 2,
+                              node_id: int = None,
+                              use_accumulated: bool = True,
+                              parent_model_type: str = None) -> Dict[str, Any]:
+        """
+        变异predict_config配置
+
+        Args:
+            base_config: 基础配置，如果为None则使用默认配置
+            mutation_rate: 变异率
+            model_type: 模型类型（组件类型，如text_decoder, image_encoder等）
+            model_num: 变异参数数量
+            node_id: 节点ID，用于增量变异管理
+            use_accumulated: 是否使用增量变异（基于上一轮结果）
+            parent_model_type: 父模型类型（如internvl3, qwenvl等），用于区分不同模型的验证规则
+
+        Returns:
+            Dict[str, Any]: 变异后的配置
+        """
+        # 定义可变异的参数及其变异范围（与net_mutation保持一致）
+        mutable_params_pool = {
+            'mlp_ratio': {'min_val': 2.0, 'max_val': 8.0, 'min_factor': 0.7, 'max_factor': 1.5},
+            'model_max_length': {'min_val': 32, 'max_val': 512, 'min_factor': 0.5, 'max_factor': 2.0},
+            'class_dropout_prob': {'min_val': 0.0, 'max_val': 0.3, 'min_factor': 0.5, 'max_factor': 2.0},
+            'drop_path': {'min_val': 0.0, 'max_val': 0.3, 'min_factor': 0.5, 'max_factor': 2.0},
+            'space_scale': {'min_val': 0.0, 'max_val': 0.3, 'min_factor': 0.5, 'max_factor': 2.0},
+            'time_scale': {'min_val': 0.0, 'max_val': 0.3, 'min_factor': 0.5, 'max_factor': 2.0},
+            'norm_eps': {'min_val': 1e-06, 'max_val': 1e-04, 'min_factor': 0.5, 'max_factor': 2.0},
+            'num_embeds_ada_norm': {'min_val': 1000, 'max_val': 2000, 'min_factor': 0.5, 'max_factor': 2.0},
+            'attention_dropout': {'min_val': 0.0, 'max_val': 1.0, 'min_factor': 0.5, 'max_factor': 2.0},
+            'hidden_dropout': {'min_val': 0.0, 'max_val': 1.0, 'min_factor': 0.5, 'max_factor': 2.0},
+            'vocab_size': {'min_val': 10000, 'max_val': 11000, 'min_factor': 0.5, 'max_factor': 2.0},
+            'batch_size': {'min_val': 4, 'max_val': 8, 'min_factor': 0.5, 'max_factor': 2.0},
+            'seq_len': {'min_val': 10, 'max_val': 20, 'min_factor': 0.5, 'max_factor': 2.0},
+            'max_sequence_length': {'min_val': 128, 'max_val': 228, 'min_factor': 0.5, 'max_factor': 2.0},
+            'num_tokentypes': {'min_val': 2, 'max_val': 4, 'min_factor': 0.5, 'max_factor': 2.0},
+            'dropout_prob': {'min_val': 0.1, 'max_val': 0.1, 'min_factor': 0.5, 'max_factor': 2.0},
+            'image_size': {'min_val': 224, 'max_val': 224, 'min_factor': 0.5, 'max_factor': 2.0},
+            'patch_size': {'min_val': 16, 'max_val': 16, 'min_factor': 0.5, 'max_factor': 2.0},
+            'num_idx': {'min_val': 200, 'max_val': 1000, 'min_factor': 0.5, 'max_factor': 2.0},
+            'shift_scale': {'min_val': 1.0, 'max_val': 20.0, 'min_factor': 0.5, 'max_factor': 2.0},
+            'class_token_len': {'min_val': 1, 'max_val': 2, 'min_factor': 0.5, 'max_factor': 2.0},
+            'learnable_pos_embed': {'enum': [True, False]},
+            'norm_elementwise_affine': {'enum': [True, False]},
+            'uniform_sampling': {'enum': [True, False]},
+            'quantize_c_noise': {'enum': [True, False]},
+            'ucg_rate': {'min_val': 0.0, 'max_val': 2.0, 'min_factor': 0.5, 'max_factor': 2.0},
+            'concat_text_embed': {'enum': [True, False]},
+            'conv_padding': {'enum': [0, 1]},
+            'num_res_blocks': {'enum': [2, 3, 4]},
+            'use_tiling': {'enum': [True, False]},
+            "use_rope": {'enum': [True, False]},
+            'cross_attention_dim': {'min_val': 1024, 'max_val': 4096, 'min_factor': 0.5, 'max_factor': 2.0},
+            'attention_bias': {'enum': [True, False]},
+            'parallel_output': {'enum': [True, False]},
+            'intermediate_size': {'min_val': 855, 'max_val': 3420, 'min_factor': 0.5, 'max_factor': 2.0},
+            'activation_func': {'enum': ['gelu', 'silu']},
+            'disable_bias_linear': {'enum': [True, False]},
+            'bias_activation_fusion': {'enum': [True, False]},
+            'attention_softmax_in_fp32': {'enum': [True]},
+            'normalization': {'enum': ['LayerNorm', 'RMSNorm']},
+            'max_position_embeddings': {'min_val': 1000, 'max_val': 128000, 'min_factor': 0.5, 'max_factor': 2.0},
+            'add_qkv_bias': {'enum': [True, False]},
+            'post_layer_norm': {'enum': [True, False]},
+            'group_query_attention': {'enum': [True, False]},
+            'untie_embeddings_and_output_weights': {'enum': [True, False]},
+            'tokens_per_second': {'min_val': 2, 'max_val': 64, 'min_factor': 0.5, 'max_factor': 2.0},
+            'window_attn_size': {'min_val': 56, 'max_val': 448, 'min_factor': 0.5, 'max_factor': 2.0},
+            'decoder_gather_norm': {'enum': [True, False]},
+            'noised_image_all_concat': {'enum': [True, False]},
+            'noised_image_input': {'enum': [True, False]},
+            'noised_image_dropout': {'min_val': 0.0, 'max_val': 0.2, 'min_factor': 0.5, 'max_factor': 2.0},
+            'low_cpu_mem_usage': {'enum': [True, False]},
+            'use_attention_mask': {'enum': [True, False]},
+            'init_method_std': {'enum': [0.01]},
+            'use_fused_rotary_pos_emb': {'enum': [True, False]},
+            'recompute_num_layers': {'min_val': 2, 'max_val': 64, 'min_factor': 0.5, 'max_factor': 2.0},
+            'recompute_method': {'enum': ['block', 'uniform']},
+            'persist_layer_norm': {'enum': [True, False]},
+            'apply_query_key_layer_scaling': {'enum': [True, False]},
+            'deallocate_pipeline_outputs': {'enum': [True, False]},
+            'layernorm_zero_centered_gamma': {'enum': [True, False]},
+            'bias_dropout_fusion': {'enum': [True, False]},
+            'apply_rope_fusion': {'enum': [True, False]},
+        }
+
+        print(f"对{model_type}模型进行变异，变异率: {mutation_rate}, 变异参数数: {model_num}")
+
+        # 确定要使用的基础配置
+        if use_accumulated and node_id is not None and node_id in self.incremental_configs:
+            working_config = self.incremental_configs[node_id].copy()
+            print(f"💡 节点 {node_id}: 基于第 {self.current_round} 轮增量结果进行变异")
+        elif base_config is not None:
+            if isinstance(base_config, str):
+                working_config = {}
+            else:
+                working_config = base_config.copy()
+            if node_id is not None:
+                self.incremental_configs[node_id] = working_config.copy()
+            print(f"节点 {node_id}: 使用提供的基础配置进行变异")
+        else:
+            return None
+
+        # 记录变异前的状态
+        pre_mutation_config = working_config.copy()
+        mutations_applied = {}
+
+        # 随机选择要变异的参数（与net_mutation一致）
+        num = min(model_num, len(mutable_params_pool))
+        sampled_keys = random.sample(list(mutable_params_pool.keys()), k=num)
+        mutable_params = {k: mutable_params_pool[k] for k in sampled_keys}
+
+        for param_name, constraints in mutable_params.items():
+            if param_name in working_config and working_config[param_name] is not None and random.random() < mutation_rate:
+                print(f"  变异参数: {param_name}")
+                original_value = working_config[param_name]
+
+                # 跳过列表/元组/数组类型
+                if isinstance(original_value, (list, tuple, np.ndarray)):
+                    continue
+
+                # 优先处理枚举类型参数
+                if isinstance(constraints, dict) and 'enum' in constraints:
+                    enum_values = constraints['enum']
+                    if isinstance(original_value, bool) and all(isinstance(v, bool) for v in enum_values):
+                        new_value = not original_value
+                    else:
+                        candidates = [v for v in enum_values if v != original_value]
+                        new_value = random.choice(candidates) if candidates else original_value
+
+                    print(f"    {param_name}: {original_value} -> {new_value}")
+                    working_config[param_name] = new_value
+                    mutations_applied[param_name] = {
+                        'from': original_value,
+                        'to': new_value,
+                        'constraints': constraints
+                    }
+                    continue
+
+                # 处理浮点数参数
+                float_params = ['mlp_ratio', 'class_dropout_prob', 'drop_path', "space_scale", "time_scale",
+                               "num_embeds_ada_norm", "attention_dropout", "hidden_dropout", "dropout_prob"]
+                if param_name in float_params:
+                    min_val = max(constraints['min_val'], original_value * constraints['min_factor'])
+                    max_val = min(constraints['max_val'], original_value * constraints['max_factor'])
+                    if min_val > max_val:
+                        min_val, max_val = max_val, min_val
+                    new_value = random.uniform(min_val, max_val)
+                    new_value = round(new_value, 3)
+                elif param_name == "norm_eps":
+                    min_val = max(constraints['min_val'], original_value * constraints['min_factor'])
+                    max_val = min(constraints['max_val'], original_value * constraints['max_factor'])
+                    if min_val > max_val:
+                        min_val, max_val = max_val, min_val
+                    new_value = random.uniform(min_val, max_val)
+                    new_value = round(new_value, 8)
+                else:  # 整数参数
+                    min_val = max(constraints['min_val'], int(original_value * constraints['min_factor']))
+                    max_val = min(constraints['max_val'], int(original_value * constraints['max_factor']))
+                    if min_val > max_val:
+                        min_val, max_val = max_val, min_val
+
+                    # 特殊处理2的幂
+                    if param_name in ['num_heads', 'num_attention_heads']:
+                        possible_values = [2 ** i for i in range(3, 7) if 2 ** i >= min_val and 2 ** i <= max_val]
+                        if possible_values:
+                            new_value = random.choice(possible_values)
+                        else:
+                            new_value = max(8, min(32, original_value))
+                    else:
+                        if param_name in ['num_layers', 'num_heads', 'num_attention_heads']:
+                            min_val = max(min_val, 1)
+                        new_value = random.randint(min_val, max_val)
+
+                print(f"    {param_name}: {original_value} -> {new_value}")
+                working_config[param_name] = new_value
+                mutations_applied[param_name] = {
+                    'from': original_value,
+                    'to': new_value,
+                    'constraints': constraints
+                }
+
+        # 对嵌套配置进行变异（如vision_encoder等）
+        for nested_key in ['vision_encoder', 'vision_projector', 'text_decoder']:
+            if nested_key in working_config and isinstance(working_config[nested_key], dict):
+                nested_config = working_config[nested_key]
+                for param_name, constraints in mutable_params.items():
+                    if param_name in nested_config and nested_config[param_name] is not None and random.random() < mutation_rate:
+                        if isinstance(nested_config[param_name], (list, tuple, np.ndarray)):
+                            continue
+
+                        original_value = nested_config[param_name]
+                        key_with_prefix = f"{nested_key}.{param_name}"
+                        print(f"  变异参数: {key_with_prefix}")
+
+                        if isinstance(constraints, dict) and 'enum' in constraints:
+                            enum_values = constraints['enum']
+                            if isinstance(original_value, bool) and all(isinstance(v, bool) for v in enum_values):
+                                new_value = not original_value
+                            else:
+                                candidates = [v for v in enum_values if v != original_value]
+                                new_value = random.choice(candidates) if candidates else original_value
+                        elif param_name in ['mlp_ratio', 'class_dropout_prob', 'drop_path', "space_scale", "time_scale",
+                                           "num_embeds_ada_norm", "attention_dropout", "hidden_dropout", "dropout_prob"]:
+                            min_val = max(constraints['min_val'], original_value * constraints['min_factor'])
+                            max_val = min(constraints['max_val'], original_value * constraints['max_factor'])
+                            if min_val > max_val:
+                                min_val, max_val = max_val, min_val
+                            new_value = round(random.uniform(min_val, max_val), 3)
+                        elif param_name == "norm_eps":
+                            min_val = max(constraints['min_val'], original_value * constraints['min_factor'])
+                            max_val = min(constraints['max_val'], original_value * constraints['max_factor'])
+                            if min_val > max_val:
+                                min_val, max_val = max_val, min_val
+                            new_value = round(random.uniform(min_val, max_val), 8)
+                        else:
+                            min_val = max(constraints['min_val'], int(original_value * constraints['min_factor']))
+                            max_val = min(constraints['max_val'], int(original_value * constraints['max_factor']))
+                            if min_val > max_val:
+                                min_val, max_val = max_val, min_val
+                            new_value = random.randint(min_val, max_val)
+
+                        print(f"    {param_name}: {original_value} -> {new_value}")
+                        nested_config[param_name] = new_value
+
+        # 验证和修复关键配置参数
+        self._validate_and_fix_config(working_config, model_type, parent_model_type)
+
+        # 更新增量配置和历史记录
+        if node_id is not None:
+            self.incremental_configs[node_id] = working_config.copy()
+
+            mutation_record = {
+                'round': self.current_round + 1,
+                'timestamp': datetime.now().isoformat(),
+                'pre_mutation': pre_mutation_config,
+                'post_mutation': working_config,
+                'mutations_applied': mutations_applied,
+                'mutation_rate': mutation_rate,
+                'model_type': model_type,
+                'use_accumulated': use_accumulated
+            }
+
+            if node_id not in self.mutation_history:
+                self.mutation_history[node_id] = []
+            self.mutation_history[node_id].append(mutation_record)
+
+            print(f"✓ 节点 {node_id} 第 {self.current_round + 1} 轮变异完成，应用了 {len(mutations_applied)} 个参数变异")
+
+        return working_config
+
+    def _validate_and_fix_config(self, config: Dict[str, Any], model_type: str,
+                                  parent_model_type: str = None) -> Dict[str, Any]:
+        """
+        验证和修复配置参数，确保模型能够正常初始化
+        参考 net_mutation 的验证逻辑
+        """
+        fixed_config = config
+
+        def safe_check_non_positive(value):
+            """安全检查值是否为非正数或None"""
+            return value is None or value <= 0
+
+        # 1. 确保 hidden_size 能被 num_heads 和 num_attention_heads 的最小公倍数整除
+        if 'hidden_size' in fixed_config:
+            hidden_size = fixed_config['hidden_size']
+            if safe_check_non_positive(hidden_size):
+                fixed_config['hidden_size'] = 512
+                print(f"  修复 hidden_size: {hidden_size} -> 512 (必须大于0)")
+                hidden_size = 512
+
+            heads = []
+            if 'num_heads' in fixed_config:
+                nh = fixed_config['num_heads']
+                if safe_check_non_positive(nh):
+                    fixed_config['num_heads'] = 8
+                    print(f"  修复 num_heads: {nh} -> 8 (必须大于0)")
+                    nh = 8
+                heads.append(nh)
+            if 'num_attention_heads' in fixed_config:
+                nah = fixed_config['num_attention_heads']
+                if safe_check_non_positive(nah):
+                    fixed_config['num_attention_heads'] = 8
+                    print(f"  修复 num_attention_heads: {nah} -> 8 (必须大于0)")
+                    nah = 8
+                heads.append(nah)
+
+            heads = [h for h in heads if h and h > 0]
+            if heads:
+                div = heads[0]
+                for h in heads[1:]:
+                    div = div * h // math.gcd(div, h)
+                if hidden_size % div != 0:
+                    new_hidden_size = (hidden_size // div + 1) * div
+                    fixed_config['hidden_size'] = new_hidden_size
+                    print(f"  修复 hidden_size: {hidden_size} -> {new_hidden_size} (必须能被LCM{heads}整除)")
+
+        # 2. 确保其他关键参数的有效性
+        if 'num_layers' in fixed_config and safe_check_non_positive(fixed_config['num_layers']):
+            fixed_config['num_layers'] = 2
+            print(f"  修复 num_layers: {config.get('num_layers')} -> 2")
+
+        # 3. InternVL3/Qwen 特定验证 - 修复 pipeline_num_layers
+        if parent_model_type and ('internvl' in str(parent_model_type).lower() or 'qwen' in str(parent_model_type).lower()):
+            def _fix_pipeline_num_layers(cfg: Dict[str, Any], cfg_path: str = ""):
+                """递归修复 pipeline_num_layers"""
+                if 'pipeline_num_layers' in cfg:
+                    original = cfg['pipeline_num_layers']
+                    # 检查是否有0或负数
+                    if any(v <= 0 for v in original):
+                        # 根据 num_layers 和 PP 配置计算正确的值
+                        num_layers = cfg.get('num_layers', 24)
+                        # 默认 PP=4，均匀分配
+                        base = num_layers // 4
+                        remainder = num_layers % 4
+                        correct_value = [base + (1 if i < remainder else 0) for i in range(4)]
+                        cfg['pipeline_num_layers'] = correct_value
+                        print(f"  修复 {cfg_path}pipeline_num_layers: {original} -> {correct_value}")
+
+                # 递归处理嵌套配置（包括 image_encoder, vision_encoder, text_decoder）
+                for key in ['image_encoder', 'vision_encoder', 'vision_projector', 'text_decoder']:
+                    if key in cfg and isinstance(cfg[key], dict):
+                        _fix_pipeline_num_layers(cfg[key], f"{cfg_path}{key}.")
+
+            _fix_pipeline_num_layers(fixed_config)
+
+        # 4. CogVideoX/OpenSora 特定验证
+        if parent_model_type and ('cogvideo' in str(parent_model_type).lower() or 'opensora' in str(parent_model_type).lower()):
+            # use_rope 必须为 True
+            if 'use_rope' in fixed_config and not fixed_config['use_rope']:
+                fixed_config['use_rope'] = True
+                print(f"  修复 use_rope: False -> True (CogVideoX/OpenSora需要RoPE)")
+
+        return fixed_config
+
+    def advance_round(self):
+        """推进到下一轮变异"""
+        self.current_round += 1
+        print(f"🔄 变异轮次推进到第 {self.current_round + 1} 轮")
+
+    def get_incremental_changes_summary(self, node_id: int) -> Dict[str, Any]:
+        """
+        获取指定节点的增量变异变化汇总
+        """
+        if node_id not in self.mutation_history:
+            return {
+                'node_id': node_id,
+                'total_rounds': 0,
+                'current_round': self.current_round,
+                'incremental_changes': {},
+                'total_parameters_mutated': 0
+            }
+
+        history = self.mutation_history[node_id]
+        parameter_changes = {}
+        total_mutated_params = 0
+
+        for round_record in history:
+            mutations = round_record.get('mutations_applied', {})
+            for param_name, mutation_info in mutations.items():
+                if param_name not in parameter_changes:
+                    parameter_changes[param_name] = {
+                        'initial': mutation_info['from'],
+                        'current': mutation_info['to'],
+                        'total_rounds_mutated': 1
+                    }
+                    total_mutated_params += 1
+                else:
+                    parameter_changes[param_name]['current'] = mutation_info['to']
+                    parameter_changes[param_name]['total_rounds_mutated'] += 1
+
+        return {
+            'node_id': node_id,
+            'total_rounds': len(history),
+            'current_round': self.current_round,
+            'incremental_changes': parameter_changes,
+            'total_parameters_mutated': total_mutated_params
+        }

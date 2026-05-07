@@ -1,0 +1,15 @@
+model:
+    num_layers:8
+    hidden_size:896
+    ffn_hidden_size:2048
+    num_attention_heads:8
+    num_query_groups:8
+    tensor_model_parallel_size:1
+    pipeline_model_parallel_size:4
+    normalization:"RMSNorm"
+    layernorm_epsilon:0.000001
+    attention_dropout:0.1
+    hidden_dropout:0.3
+    add_bias_linear:false
+    init_method_std:0.01
+    qk_layernorm:false

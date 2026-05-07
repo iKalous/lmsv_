@@ -1,0 +1,48 @@
+{
+  "description": "Task3 pre-merge gate cases. Cases are config patches and keep the same shape as config.json.",
+  "common": {
+    "env_name": ""
+  },
+  "base_config_patch": {
+    "task_type": 3,
+    "tasks": {
+      "3": {
+        "TOTAL_ITER": 1,
+        "MUTNM": 2,
+        "SAVE_STEPS": 1,
+        "LOAD_STEPS": 2,
+        "PTA_MAX_RUNTIME": 1500,
+        "MSA_MAX_RUNTIME": 1200,
+        "LOG_INIT_WAIT": 240,
+        "LOG_STABLE_THRESHOLD": 60,
+        "MAX_MUTATION_WAIT": 600,
+        "BASE_SEED": 43,
+        "COMPARE_MODE": "pta_msa"
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "qwen2-glm4",
+      "enabled": true,
+      "config_patch": {
+        "tasks": {
+          "3": {
+            "MODELS": ["qwen2", "glm4"]
+          }
+        }
+      }
+    },
+    {
+      "id": "qwen3-llama2",
+      "enabled": false,
+      "config_patch": {
+        "tasks": {
+          "3": {
+            "MODELS": ["qwen3", "llama2"]
+          }
+        }
+      }
+    }
+  ]
+}

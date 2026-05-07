@@ -1,0 +1,329 @@
+# Task6 多模态配置变异参数池
+# 定义可变异的参数及其变异范围
+# 位置: lm-sv/lmsv_rec/mutable_params_pool.yaml
+
+# 数值型参数 (范围变异)
+numeric_params:
+  mlp_ratio:
+    min_val: 2.0
+    max_val: 8.0
+    min_factor: 0.7
+    max_factor: 1.5
+
+  model_max_length:
+    min_val: 32
+    max_val: 512
+    min_factor: 0.5
+    max_factor: 2.0
+
+  class_dropout_prob:
+    min_val: 0.0
+    max_val: 0.3
+    min_factor: 0.5
+    max_factor: 2.0
+
+  drop_path:
+    min_val: 0.0
+    max_val: 0.3
+    min_factor: 0.5
+    max_factor: 2.0
+
+  space_scale:
+    min_val: 0.0
+    max_val: 0.3
+    min_factor: 0.5
+    max_factor: 2.0
+
+  time_scale:
+    min_val: 0.0
+    max_val: 0.3
+    min_factor: 0.5
+    max_factor: 2.0
+
+  # 精度对齐：norm_eps改变LayerNorm epsilon，PTA和MSA的LayerNorm实现可能存在数值差异
+  # norm_eps:
+#   min_val: 1.0e-06
+#   max_val: 1.0e-04
+#   min_factor: 0.5
+#   max_factor: 2.0
+
+  # 精度对齐：num_embeds_ada_norm改变adaptive normalization嵌入表大小，PTA和MSA的Embedding实现差异可能导致>1% diff
+#  num_embeds_ada_norm:
+#    min_val: 1000
+#    max_val: 2000
+#    min_factor: 0.5
+#    max_factor: 2.0
+
+  attention_dropout:
+    min_val: 0.0
+    max_val: 1.0
+    min_factor: 0.5
+    max_factor: 2.0
+
+  hidden_dropout:
+    min_val: 0.0
+    max_val: 1.0
+    min_factor: 0.5
+    max_factor: 2.0
+
+  vocab_size:
+    min_val: 10000
+    max_val: 11000
+    min_factor: 0.5
+    max_factor: 2.0
+
+  batch_size:
+    min_val: 4
+    max_val: 8
+    min_factor: 0.5
+    max_factor: 2.0
+
+  seq_len:
+    min_val: 10
+    max_val: 20
+    min_factor: 0.5
+    max_factor: 2.0
+
+  max_sequence_length:
+    min_val: 128
+    max_val: 228
+    min_factor: 0.5
+    max_factor: 2.0
+
+  num_tokentypes:
+    min_val: 2
+    max_val: 4
+    min_factor: 0.5
+    max_factor: 2.0
+
+  dropout_prob:
+    min_val: 0.1
+    max_val: 0.1
+    min_factor: 0.5
+    max_factor: 2.0
+
+  image_size:
+    min_val: 224
+    max_val: 224
+    min_factor: 0.5
+    max_factor: 2.0
+
+  patch_size:
+    min_val: 16
+    max_val: 16
+    min_factor: 0.5
+    max_factor: 2.0
+
+  num_idx:
+    min_val: 200
+    max_val: 1000
+    min_factor: 0.5
+    max_factor: 2.0
+
+  shift_scale:
+    min_val: 1.0
+    max_val: 20.0
+    min_factor: 0.5
+    max_factor: 2.0
+
+  class_token_len:
+    min_val: 1
+    max_val: 2
+    min_factor: 0.5
+    max_factor: 2.0
+
+  ucg_rate:
+    min_val: 0.0
+    max_val: 2.0
+    min_factor: 0.5
+    max_factor: 2.0
+
+  cross_attention_dim:
+    min_val: 1024
+    max_val: 4096
+    min_factor: 0.5
+    max_factor: 2.0
+
+  intermediate_size:
+    min_val: 855
+    max_val: 3420
+    min_factor: 0.5
+    max_factor: 2.0
+
+  max_position_embeddings:
+    min_val: 1000
+    max_val: 128000
+    min_factor: 0.5
+    max_factor: 2.0
+
+  tokens_per_second:
+    min_val: 2
+    max_val: 64
+    min_factor: 0.5
+    max_factor: 2.0
+
+  window_attn_size:
+    min_val: 56
+    max_val: 448
+    min_factor: 0.5
+    max_factor: 2.0
+
+  noised_image_dropout:
+    min_val: 0.0
+    max_val: 0.2
+    min_factor: 0.5
+    max_factor: 2.0
+
+  recompute_num_layers:
+    min_val: 2
+    max_val: 64
+    min_factor: 0.5
+    max_factor: 2.0
+
+# 枚举型参数 (离散值变异)
+enum_params:
+  learnable_pos_embed:
+    - true
+    - false
+
+  # 精度对齐：  norm_elementwise_affine:
+  #     - true
+  #     - false
+
+  uniform_sampling:
+    - true
+    - false
+
+  # 精度对齐：quantize_c_noise改变噪声量化行为，PTA和MSA的量化实现可能存在数值差异
+  # quantize_c_noise:
+#   - true
+#   - false
+
+  # 精度对齐：concat_text_embed 改变文本嵌入拼接方式，可能导致 TP 不兼容
+  # concat_text_embed:
+    # - true
+    # - false
+
+  conv_padding:
+    - 0
+    - 1
+
+# 精度对齐：num_res_blocks改变模型结构，导致checkpoint加载时参数形状不匹配
+#  num_res_blocks:
+    #     - 2
+    #     - 3
+    #     - 4
+
+  # 精度对齐：use_tiling改变VAE编码路径，tiling分块处理导致PTA和MSA数值差异
+#  use_tiling:
+#    - true
+#    - false
+
+  # 精度对齐：use_rope=false时位置编码实现差异可能导致PTA和MSA数值差异
+#  use_rope:
+    #     - true
+    #     - false
+
+  # 精度对齐：attention_bias改变注意力机制偏置，PTA和MSA实现差异可能导致数值差异
+#  attention_bias:
+#    - true
+#    - false
+
+  parallel_output:
+    - true
+    - false
+
+  activation_func:
+    - gelu
+    - silu
+
+  disable_bias_linear:
+    - true
+    - false
+
+  bias_activation_fusion:
+    - true
+    - false
+
+  attention_softmax_in_fp32:
+    - true
+
+  # 精度对齐：normalization改变模型结构，导致checkpoint加载时参数形状不匹配
+  # normalization:
+    - LayerNorm
+    - RMSNorm
+
+  # 精度对齐：add_qkv_bias改变模型结构，导致checkpoint加载时参数形状不匹配
+  # add_qkv_bias:
+  # - true
+  # - false
+
+  # 精度对齐：post_layer_norm改变模型结构，导致checkpoint加载时参数形状不匹配
+  # post_layer_norm:
+  # - true
+  # - false
+
+  group_query_attention:
+    - true
+    - false
+
+  untie_embeddings_and_output_weights:
+    - true
+    - false
+
+  # 精度对齐：decoder_gather_norm改变模型结构，导致checkpoint加载时参数形状不匹配
+  # decoder_gather_norm:
+  # - true
+  # - false
+
+  noised_image_all_concat:
+    - true
+    - false
+
+  noised_image_input:
+    - true
+    - false
+
+  # 精度对齐：low_cpu_mem_usage改变权重加载路径，PTA和MSA的加载行为可能存在数值差异
+  # low_cpu_mem_usage:
+#   - true
+#   - false
+
+  # 精度对齐：  use_attention_mask:
+  #     - true
+  #     - false
+
+  init_method_std:
+    - 0.01
+
+  use_fused_rotary_pos_emb:
+    - true
+    - false
+
+  recompute_method:
+    - block
+    - uniform
+
+  persist_layer_norm:
+    - true
+    - false
+
+  apply_query_key_layer_scaling:
+    - true
+    - false
+
+  deallocate_pipeline_outputs:
+    - true
+    - false
+
+  layernorm_zero_centered_gamma:
+    - true
+    - false
+
+  bias_dropout_fusion:
+    - true
+    - false
+
+  apply_rope_fusion:
+    - true
+    - false

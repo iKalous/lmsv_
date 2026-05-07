@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+set -e
+
+show_help() {
+    echo "Usage: lmsv [command]"
+    echo
+    echo "Commands:"
+    echo "  webui   Run web UI (python webui.py)"
+    echo "  conf    Generate config (python genconf.py)"
+    echo "  do      Execute task (python do.py)"
+    echo "  slave   Run slave service for task1/2/3 multi-node mode (python slave.py)"
+    echo "  test    Run task1/2/3 pre-merge gate tests (python tests/gate/task2_gate.py)"
+    echo "  repro   Reproduce a single run (python repro.py)"
+    echo "  analyze Regenerate analysis (python analyze.py)"
+    echo "  help    Show this help message"
+    echo
+    echo "No command: run conf + do"
+}
+
+run_conf() {
+    echo "[*] Generating config..."
+    python genconf.py
+}
+
+run_do() {
+    echo "[*] Running task..."
+    python do.py
+}
+
+run_slave() {
+    echo "[*] Starting slave service..."
+    python slave.py
+}
+
+run_test() {
+    echo "[*] Running task pre-merge gate tests..."
+    python tests/gate/task2_gate.py "${@:2}"
+}
+
+run_webui() {
+    echo "[*] Starting web UI..."
+    python webui.py
+}
+
+run_repro() {
+    echo "[*] Starting repro helper..."
+    python repro.py
+}
+
+run_analyze() {
+    echo "[*] Starting analysis helper..."
+    python analyze.py "${@:2}"
+}
+
+case "$1" in
+    webui)
+        run_webui
+        ;;
+    analyze)
+        run_analyze "$@"
+        ;;
+    conf)
+        run_conf
+        ;;
+    do)
+        run_do
+        ;;
+    slave)
+        run_slave
+        ;;
+    test)
+        run_test "$@"
+        ;;
+    repro)
+        run_repro
+        ;;
+    help|-h|--help)
+        show_help
+        ;;
+    "")
+        run_conf
+        run_do
+        ;;
+    *)
+        echo "Unknown command: $1"
+        echo
+        show_help
+        exit 1
+        ;;
+esac

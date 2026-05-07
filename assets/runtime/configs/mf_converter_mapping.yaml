@@ -1,0 +1,86 @@
+# mf_converter 参数映射配置
+# 结构参考 mutation_schema.yaml：顶层分组 + 显式字段定义
+
+arg_mapping:
+  # 基础与模型结构
+  seed: { target: [seed] }
+  save: { target: [output_dir] }
+  hidden_size: { target: [model, model_config, hidden_size] }
+  num_layers: { target: [model, model_config, num_hidden_layers] }
+  num_attention_heads: { target: [model, model_config, num_attention_heads] }
+  num_key_value_heads: { target: [model, model_config, num_key_value_heads] }
+  max_position_embeddings: { target: [model, model_config, max_position_embeddings] }
+  seq_length: { target: [model, model_config, seq_length] }
+  vocab_size: { target: [model, model_config, vocab_size] }
+  padded_vocab_size: { target: [model, model_config, vocab_size] }
+  layer_norm_epsilon: { target: [model, model_config, rms_norm_eps] }
+  norm_epsilon: { target: [model, model_config, rms_norm_eps] }
+  ffn_hidden_size: { target: [model, model_config, intermediate_size] }
+  moe_intermediate_size: { target: [model, model_config, moe_intermediate_size] }
+  num_experts: { target: [model, model_config, n_routed_experts] }
+  hidden_dropout: { target: [model, model_config, hidden_dropout] }
+  attention_dropout: { target: [model, model_config, attention_dropout] }
+  hidden_act: { target: [model, model_config, hidden_act] }
+  position_embedding_type: { target: [model, model_config, position_embedding_type] }
+  rotary_base: { target: [model, model_config, rope_theta] }
+  kv_channels: { target: [model, model_config, head_dim] }
+  use_flash_attn: { target: [model, model_config, use_flash_attention] }
+  add_qkv_bias: { target: [model, model_config, attention_bias] }
+  add_bias_linear: { target: [model, model_config, add_bias_linear] }
+  untie_embeddings_and_output_weights: { target: [model, model_config, untie_embeddings_and_output_weights] }
+  qk_layernorm: { target: [model, model_config, qk_layernorm] }
+  qkv_concat: { target: [model, model_config, qkv_concat] }
+  init_method_std: { target: [model, model_config, initializer_range] }
+  moe_router_topk: { target: [model, model_config, moe_router_topk] }
+  moe_router_pre_softmax: { target: [model, model_config, moe_router_pre_softmax] }
+  moe_layer_freq: { target: [model, model_config, moe_layer_freq] }
+  first_k_dense_replace: { target: [model, model_config, first_k_dense_replace] }
+  # Disabled for MF qwen3 TransformerConfig conversion compatibility.
+  group_query_attention: { target: null }
+  normalization: { target: [model, model_config, normalization] }
+  layernorm_epsilon: { target: [model, model_config, rms_norm_eps] }
+  # Disabled for MF qwen3 TransformerConfig conversion compatibility.
+  make_vocab_size_divisible_by: { target: null }
+  # Disabled to avoid duplicate alias conflict with num_key_value_heads.
+  num_query_groups: { target: null }
+  use_fused_rotary_pos_emb: { target: [model, model_config, use_fused_rotary_pos_emb] }
+  use_fused_rmsnorm: { target: [model, model_config, fused_rms_norm] }
+  use_fused_swiglu: { target: [model, model_config, use_fused_swiglu] }
+  # Disabled for MF qwen3 TransformerConfig conversion compatibility.
+  # 重计算参数先进入内部额外配置，由 converter 统一桥接到 MF 可识别配置
+  recompute_granularity: { target: [__lmsv_extra__, recompute, granularity] }
+  recompute_method: { target: [__lmsv_extra__, recompute, method] }
+  recompute_num_layers: { target: [__lmsv_extra__, recompute, num_layers] }
+  recompute_activation_function: { target: [__lmsv_extra__, recompute, activation_function] }
+  reuse_fp32_param: { target: [__lmsv_extra__, recompute, reuse_fp32_param] }
+  # Disabled for MF qwen3 TransformerConfig conversion compatibility.
+
+  # 优化器与学习率
+  weight_decay: { target: [optimizer, weight_decay] }
+  adam_beta1: { target: [optimizer, betas, 0] }
+  adam_beta2: { target: [optimizer, betas, 1] }
+  lr: { target: [lr_schedule, learning_rate] }
+  min_lr: { target: [lr_schedule, min_lr] }
+  lr_decay_style: { target: [lr_schedule, type] }
+  lr_warmup_fraction: { target: [lr_schedule, warmup_ratio] }
+
+  # 并行与运行配置
+  micro_batch_size: { target: [runner_config, batch_size] }
+  tensor_model_parallel_size: { target: [parallel_config, model_parallel] }
+  pipeline_model_parallel_size: { target: [parallel_config, pipeline_stage] }
+  context_parallel_size: { target: [parallel_config, context_parallel] }
+  sequence_parallel: { target: [parallel_config, use_seq_parallel] }
+  expert_model_parallel_size: { target: [parallel_config, expert_parallel] }
+  tensor_parallel_size: { target: [parallel_config, model_parallel] }
+  pipeline_parallel_size: { target: [parallel_config, pipeline_stage] }
+  expert_parallel_size: { target: [parallel_config, expert_parallel] }
+  data_parallel_size: { target: [parallel_config, data_parallel] }
+  use_distributed_optimizer: { target: [parallel, enable_parallel_optimizer] }
+  optimizer_weight_shard_size: { target: [parallel, parallel_optimizer_config, optimizer_weight_shard_size] }
+
+  # 其他元信息
+  model_type: { target: [model, model_config, model_type] }
+  architectures: { target: [model, model_config, architectures] }
+  parallel_speed_up_json_path: { target: [context, ascend_config, parallel_speed_up_json_path] }
+  cuda_device_max_connections: { target: [context, ascend_config, cuda_device_max_connections] }
+  pytorch_npu_alloc_conf: { target: [context, ascend_config, pytorch_npu_alloc_conf] }

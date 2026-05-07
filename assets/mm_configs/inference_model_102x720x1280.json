@@ -1,0 +1,63 @@
+
+{
+    "load_video_features": false,
+    "load_text_features": false,
+    "ae": {
+        "model_id": "vae3D",
+        "from_pretrained": "{{DATASET_ROOT}}/opensora1.2/sd-vae-ft-ema",
+        "from_pretrained_3dvae_ckpt": "{{DATASET_ROOT}}/opensora1.2/OpenSora-VAE-v1.2/model.safetensors",
+        "dtype": "bf16",
+        "cal_loss": false,
+        "shift": [-0.10, 0.34, 0.27, 0.98],
+        "scale": [3.85, 2.32, 2.33, 3.06],
+        "micro_frame_size" :17,
+        "freeze_vae_2d": false
+    },
+    "text_encoder": {
+       "hub_backend": "local",
+        "model_id": "T5",
+        "from_pretrained": "{{DATASET_ROOT}}/opensora1.2/t5-v1_1-xxl",
+        "low_cpu_mem_usage": true,
+        "dtype": "fp32"
+    },
+    "tokenizer":{
+        "hub_backend": "local",
+        "autotokenizer_name": "AutoTokenizer",
+        "from_pretrained": "{{DATASET_ROOT}}/opensora1.2/t5-v1_1-xxl",
+        "model_max_length":300
+    },
+    "predictor": {
+        "dtype": "bf16",
+        "model_id": "stdit3",
+        "num_layers": 28,
+        "hidden_size" : 1152,
+        "num_heads": 16,
+        "input_size": [16, 32, 32],
+        "patch_size": [1, 2, 2],
+        "space_scale": 0.5,
+        "time_scale": 1.0,
+        "enable_flashattn": true,
+        "enable_sequence_parallelism": false,
+        "from_pretrained": "{{DATASET_ROOT}}/opensora1.2/OpenSora-STDiT-v3/model.safetensors"
+    },
+    "diffusion": {
+        "model_id": "rflow",
+        "use_timestep_transform":true,
+        "num_inference_steps":5,
+        "cfg_scale":7.0,
+        "sample_method": "logit-normal"
+    },
+    "pipeline_config": {
+        "use_attention_mask": true,
+        "use_y_embedder": true,
+        "input_size": [102, 720, 1280]
+    },
+    "frame_interval": 1,
+    "save_path":"./opensora_samples/samples/",
+    "fps":24,
+    "prompt":"examples/opensora1.2/samples_prompts.txt",
+    "use_prompt_preprocess": true,
+    "pipeline_class": "OpenSoraPipeline",
+    "device":"npu",
+    "dtype": "bf16"
+}

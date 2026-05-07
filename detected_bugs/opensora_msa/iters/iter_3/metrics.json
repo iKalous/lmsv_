@@ -1,0 +1,23 @@
+{
+  "pta": {
+    "loss": null,
+    "memory": 30346.96,
+    "time": 129304.0
+  },
+  "msa": {
+    "loss": null,
+    "memory": 0.0,
+    "time": 77983.0,
+    "error_info": "TypeError: 'UntypedStorage' object is not callable"
+  },
+  "analysis": {
+    "loss_match": true,
+    "loss_diff": 0.0,
+    "memory_diff": 30346.96,
+    "time_diff": 51321.0,
+    "issues": [
+      "Unable to load weights from checkpoint file for '/data2/dataset/opensora1.2/sd-vae-ft-ema/diffusion_pytorch_model.safetensors' at '/data2/dataset/opensora1.2/sd-vae-ft-ema/diffusion_pytorch_model.safe"
+    ]
+  },
+  "timestamp": "2026-04-14T00:19:44.172284"
+}

@@ -1,0 +1,26 @@
+{
+  "task_type": 6,
+  "iteration": 1,
+  "model": "qwenvl",
+  "overall_status": "PASS",
+  "reason": "MSA verification failed: Traceback (most recent call last):\n[rank0]:   File \"/shared/lm-sv/mm-new/MindSpeed-MM/inference_vlm.py\", line 37, in <module>\n[rank0]:     main()\n[rank0]:   File \"/shared/lm-sv/mm-new/MindSpeed-MM/inf",
+  "components": {
+    "MUTATE": "PASS",
+    "PTA_VERIFY": "PASS",
+    "MSA_VERIFY": "FAIL",
+    "ANALYSIS": "FAIL"
+  },
+  "metrics_summary": {
+    "pta_loss": null,
+    "pta_memory": 0.0,
+    "pta_time": 75941.0,
+    "msa_loss": null,
+    "msa_memory": null,
+    "msa_time": null,
+    "loss_diff": 0.0,
+    "issues": [
+      "Traceback (most recent call last):\n[rank0]:   File \"/shared/lm-sv/mm-new/MindSpeed-MM/inference_vlm.py\", line 37, in <module>\n[rank0]:     main()\n[rank0]:   File \"/shared/lm-sv/mm-new/MindSpeed-MM/inf"
+    ]
+  },
+  "updated_at": "2026-04-10 17:15:55"
+}

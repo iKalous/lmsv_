@@ -1,0 +1,24 @@
+{
+  "task_type": 6,
+  "iteration": 1,
+  "model": "opensora",
+  "overall_status": "PASS",
+  "reason": "",
+  "components": {
+    "MUTATE": "PASS",
+    "PTA_VERIFY": "PASS",
+    "MSA_VERIFY": "PASS",
+    "ANALYSIS": "PASS"
+  },
+  "metrics_summary": {
+    "pta_loss": null,
+    "pta_memory": 30378.99,
+    "pta_time": 110840.0,
+    "msa_loss": null,
+    "msa_memory": 0.0,
+    "msa_time": 15732.0,
+    "loss_diff": 0.0,
+    "issues": []
+  },
+  "updated_at": "2026-04-10 13:10:02"
+}

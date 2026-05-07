@@ -1,0 +1,100 @@
+# LMSV (Large Model System Validation) 依赖文件
+# 包含所有Task（Task1-6）的通用依赖以及PTA/MSA环境说明
+
+# ==================== LMSV 核心依赖 ====================
+# 所有Task共同运行的Python环境（lmsv_rec本体）
+
+colorama>=0.4.6          # 彩色终端输出
+numpy>=1.24              # 数值计算（通用版本）
+pandas>=2.0              # 数据分析与CSV处理
+PyYAML>=6.0              # YAML配置文件解析
+ruamel.yaml>=0.17        # YAML高级处理（保留注释等）
+
+# ==================== Task6 多模态变异依赖 ====================
+# Task6 多模态整网变异和验证所需依赖
+
+pyyaml>=6.0              # YAML配置（用于mutable_params_pool.yaml解析，与PyYAML相同）
+
+# ==================== PTA 环境依赖（动态图） ====================
+# PTA (PyTorch Ascend) 环境: conda activate mindspeed
+# 以下依赖需在PTA环境中安装，不在lmsv_rec本体依赖中
+
+# torch>=2.1.0           # PyTorch基础框架（MindSpeed-MM自带）
+# torch-npu              # 华为NPU适配（CANN配套）
+# transformers>=4.39.0   # HuggingFace Transformers（多模态模型支持）
+# accelerate>=0.28.0     # HuggingFace Accelerate（模型加载/混合精度）
+# diffusers>=0.27.0      # HuggingFace Diffusers（扩散模型：OpenSora/CogVideoX）
+# safetensors            # 安全模型权重格式
+# mindspeed-mm           # MindSpeed-MM框架（项目自带）
+
+# ==================== MSA 环境依赖（静态图） ====================
+# MSA (MindSpore Adapter) 环境: conda activate msa-m
+# 以下依赖需在MSA环境中安装，版本必须严格匹配
+
+# python==3.10           # Python版本要求
+# mindspore==2.7.1       # MindSpore框架（固定版本）
+# msadapter==0.0.5       # MindSpore Adapter（PTA兼容层）
+# numpy==1.26.0          # 必须<=1.26.0，与ml_dtypes兼容
+# ml_dtypes==0.3.0       # 必须与numpy 1.26.0兼容
+# scipy==1.11.4          # 与numpy 1.26兼容
+# transformers>=4.39.0   # HuggingFace Transformers（多模态模型支持）
+# accelerate>=0.28.0     # HuggingFace Accelerate（模型加载/混合精度）
+# diffusers>=0.27.0      # HuggingFace Diffusers（扩散模型支持）
+# imageio>=2.37          # OpenSora推理依赖（视频/图像读写）
+# decord>=0.6.0          # OpenSora推理依赖（视频解码，aarch64建议conda-forge安装）
+# qwen-vl-utils>=0.0.14  # Qwen2VL/多模态推理依赖（MindSpeed-MM pipeline __init__ 统一导入）
+
+# ==================== 可选依赖 ====================
+# 以下依赖根据具体使用场景选择性安装
+
+# jinja2>=3.0            # 模板引擎（部分报告生成使用）
+# tqdm>=4.65             # 进度条显示
+# matplotlib>=3.7        # 数据可视化（可选）
+# plotly>=5.14           # 交互式图表（可选）
+
+# ==================== 环境修复记录（2026-04-14） ====================
+# 以下修复已在当前环境中应用，后续部署需同步执行
+#
+# 修复1：bfloat16 fallback
+#   文件：<lm-sv-root>/mm-new/msadapter/msadapter/_utils.py
+#         <lm-sv-root>/mm-new/msadapter/msadapter/serialization.py
+#         <lm-sv-root>/mm-new/msadapter/build/lib/msadapter/_utils.py
+#         <lm-sv-root>/mm-new/msadapter/build/lib/msadapter/serialization.py
+#   修改：当 mindspore.common.np_dtype 没有 bfloat16 时，自动 fallback 到 ml_dtypes.bfloat16
+#
+# 修复2：GLIBCXX_3.4.29 缺失
+#   文件：<lm-sv-root>/lmsv_rec/scripts/envset/mm-msa-task6
+#   修改：export LD_LIBRARY_PATH="/root/anaconda3/envs/msadapter/lib:${LD_LIBRARY_PATH}"
+#   说明：优先加载 conda 环境自带的 libstdc++.so.6，解决 numpy C++ 库版本不匹配
+#
+# 修复3：transformers device_map 参数错位
+#   文件：/root/anaconda3/envs/msadapter/lib/python3.10/site-packages/transformers/modeling_utils.py
+#   修改：将 _load_state_dict_into_meta_model 的 expected_keys 和 reverse_renaming_mapping
+#         从位置参数改为关键字参数传入，适配 MindSpeed MSA patch 的签名
+#
+# ==================== 环境准备说明 ====================
+#
+# 1. 安装LMSV核心依赖：
+#    pip install -r requirements.txt
+#
+# 2. PTA环境准备（mindspeed）：
+#    conda activate mindspeed
+#    # MindSpeed-MM框架通常自带torch、torch-npu等
+#    pip install transformers>=4.39.0 accelerate>=0.28.0 diffusers>=0.27.0
+#
+# 3. MSA环境准备（msa-m）：
+#    conda activate msa-m
+#    pip install mindspore==2.7.1
+#    pip install numpy==1.26.0 ml_dtypes==0.3.0 scipy==1.11.4
+#    pip install transformers>=4.39.0 accelerate>=0.28.0 diffusers>=0.27.0
+#    pip install imageio>=2.37 qwen-vl-utils>=0.0.14
+#    conda install -n msa-m -c conda-forge decord  # aarch64需conda安装
+#    # 注意：msadapter 当前使用本地源码（PYTHONPATH），非 pip 安装
+#    # 路径：<lm-sv-root>/mm-new/msadapter/
+#
+# 4. CANN环境：
+#    确保已安装Ascend CANN Toolkit 8.3+
+#    source /usr/local/Ascend/ascend-toolkit/set_env.sh
+#
+# 注意：numpy版本在MSA环境中必须严格为1.26.0，否则会出现兼容性问题
+# 参考：docs/task6_skill.md 第8节 "MSA环境依赖版本"

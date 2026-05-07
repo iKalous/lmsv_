@@ -1,0 +1,117 @@
+{
+  "description": "Task2 pre-merge gate cases. Cases are config patches and keep the same shape as config.json.",
+  "common": {
+    "env_name": ""
+  },
+  "base_config_patch": {
+    "task_type": 2,
+    "tasks": {
+      "2": {
+        "TOTAL_ITER": 1,
+        "MUTNM": 2,
+        "SAVE_STEPS": 1,
+        "LOAD_STEPS": 2,
+        "PTA_MAX_RUNTIME": 1500,
+        "MSA_MAX_RUNTIME": 1200,
+        "LOG_INIT_WAIT": 240,
+        "LOG_STABLE_THRESHOLD": 60,
+        "BASE_SEED": 43,
+        "COMPARE_MODE": "pta_msa",
+        "ENABLE_MF_WEIGHT_LOAD": false,
+        "MF_ARGS_PATH": "assets/runtime/mf_templates/basic.yaml"
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "llama2-main",
+      "enabled": true,
+      "config_patch": {
+        "tasks": {
+          "2": {
+            "MODELS": ["llama2", "llama2"],
+            "SUBMODULES": [0, 1]
+          }
+        }
+      }
+    },
+
+    {
+      "id": "qwen3-main",
+      "enabled": true,
+      "config_patch": {
+        "tasks": {
+          "2": {
+            "MODELS": [
+              "qwen3",
+              "qwen3",
+              "qwen3",
+              "qwen3",
+              "qwen3",
+              "qwen3",
+              "qwen3",
+              "qwen3"
+            ],
+            "SUBMODULES": [1, 2, 3, 4, 6, 8, 9, 10]
+          }
+        }
+      }
+    },
+
+    {
+      "id": "deepseekv3-main",
+      "enabled": true,
+      "config_patch": {
+        "tasks": {
+          "2": {
+            "MODELS": ["deepseekv3", "deepseekv3", "deepseekv3"],
+            "SUBMODULES": [2, 3, 7]
+          }
+        }
+      }
+    },
+
+    {
+      "id": "mixtral-main",
+      "enabled": true,
+      "config_patch": {
+        "tasks": {
+          "2": {
+            "MODELS": ["mixtral", "mixtral", "mixtral", "mixtral"],
+            "SUBMODULES": [0, 1, 7, 9]
+          }
+        }
+      }
+    },
+    {
+      "id": "pangu-56910-divisibility-bug",
+      "enabled": true,
+      "config_patch": {
+        "task_type": 2,
+        "PTA_NAME": "mindspeed",
+        "PTA_PATH": "/workspace/pta",
+        "SAVE_ABNORMAL_WEIGHTS": true,
+        "MSA_NAME": "msadapter",
+        "MSA_PATH": "/workspace/msa/MindSpeed-Core-MS",
+        "tasks": {
+          "2": {
+            "MODELS": ["pangu", "pangu", "pangu", "pangu"],
+            "TOTAL_ITER": 3,
+            "BASE_SEED": 43,
+            "SUBMODULES": [5, 6, 9, 10],
+            "MUTNM": 2,
+            "LOAD_STEPS": 10,
+            "COMPARE_MODE": "pta_msa",
+            "MF_ARGS_PATH": "assets/runtime/mf_templates/basic.yaml",
+            "ENABLE_MF_WEIGHT_LOAD": false,
+            "PTA_MAX_RUNTIME": 3000,
+            "MSA_MAX_RUNTIME": 3000,
+            "LOG_INIT_WAIT": 240,
+            "LOG_STABLE_THRESHOLD": 60,
+            "SAVE_STEPS": 1
+          }
+        }
+      }
+    }
+  ]
+}

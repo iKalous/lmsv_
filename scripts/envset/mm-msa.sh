@@ -1,0 +1,7 @@
+# 额外PYTHONPATH设置，需要预先配置环境变量$MSAPATH
+
+export PYTHONPATH=$MSAPATH:$MSAPATH/MSAdapter:$MSAPATH/MSAdapter/msa_thirdparty:$MSAPATH/MindSpeed:$MSAPATH/MindSpeed-MM:$MSAPATH/Megatron-LM
+
+export HCCL_DETERMINISTIC=true 
+export ASCEND_LAUNCH_BLOCKING=1 
+export NCCL_DETERMINISTIC=1

@@ -1,0 +1,59 @@
+{
+  "description": "Task1 pre-merge gate cases. Cases are config patches and keep the same shape as config.json.",
+  "common": {
+    "env_name": ""
+  },
+  "base_config_patch": {
+    "task_type": 1,
+    "tasks": {
+      "1": {
+        "TOTAL_ITER": 1,
+        "MUTNM": 2,
+        "SAVE_STEPS": 1,
+        "LOAD_STEPS": 2,
+        "PTA_MAX_RUNTIME": 1500,
+        "MSA_MAX_RUNTIME": 1200,
+        "LOG_INIT_WAIT": 240,
+        "LOG_STABLE_THRESHOLD": 60,
+        "BASE_SEED": 43,
+        "COMPARE_MODE": "pta_msa",
+        "ENABLE_WEIGHT_CONVERT": false
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "qwen3-basic",
+      "enabled": true,
+      "config_patch": {
+        "tasks": {
+          "1": {
+            "MODEL_NAME": "qwen3"
+          }
+        }
+      }
+    },
+    {
+      "id": "llama2-basic",
+      "enabled": false,
+      "config_patch": {
+        "tasks": {
+          "1": {
+            "MODEL_NAME": "llama2"
+          }
+        }
+      }
+    },
+    {
+      "id": "mixtral-basic",
+      "enabled": false,
+      "config_patch": {
+        "tasks": {
+          "1": {
+            "MODEL_NAME": "mixtral"
+          }
+        }
+      }
+    }
+  ]
+}

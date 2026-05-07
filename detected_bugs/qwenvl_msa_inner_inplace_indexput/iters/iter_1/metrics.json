@@ -1,0 +1,23 @@
+{
+  "pta": {
+    "loss": null,
+    "memory": 18320.92,
+    "time": 72679.0
+  },
+  "msa": {
+    "loss": null,
+    "memory": null,
+    "time": null,
+    "error_info": "ValueError: For 'InnerInplaceIndexPut', shape mismatch: value tensor of shape [14308, 1280] cannot be broadcast to indexing result of shape [3577, 3584]."
+  },
+  "analysis": {
+    "loss_match": true,
+    "loss_diff": 0.0,
+    "memory_diff": 0.0,
+    "time_diff": 0.0,
+    "issues": [
+      "MSA execution failed - fatal error detected in logs"
+    ]
+  },
+  "timestamp": "2026-04-14T02:36:19.589962"
+}

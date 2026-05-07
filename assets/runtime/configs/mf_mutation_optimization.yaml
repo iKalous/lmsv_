@@ -1,0 +1,36 @@
+supported_models:
+  - qwen3
+  - deepseekv3
+
+mutation_count:
+  min: 2
+  max: 4
+
+parameters:
+  - name: memory_optimize_level
+    target: [context, memory_optimize_level]
+    values: ["O0", "O1"]
+  - name: jit_level
+    target: [context, jit_config, jit_level]
+    values: ["O0", "O1", "O2"]
+  - name: parallel_optimizer_comm_recompute
+    target: [recompute_config, parallel_optimizer_comm_recompute]
+    values: [false]
+  - name: mp_comm_recompute
+    target: [recompute_config, mp_comm_recompute]
+    values: [false]
+  - name: gradient_accumulation_shard
+    target: [parallel, parallel_optimizer_config, gradient_accumulation_shard]
+    values: [true, false]
+  - name: parallel_optimizer_threshold
+    target: [parallel, parallel_optimizer_config, parallel_optimizer_threshold]
+    values: [32, 64, 128]
+  - name: optimizer_weight_shard_size
+    target: [parallel, parallel_optimizer_config, optimizer_weight_shard_size]
+    values: [-1, 1, 2, 4, 8, 16]
+  - name: layer_decay
+    target: [layer_decay]
+    values: [0.5, 0.75, 0.9]
+  - name: lr_scale_factor
+    target: [lr_scale_factor]
+    values: [64, 128, 512]

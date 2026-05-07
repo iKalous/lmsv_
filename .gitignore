@@ -1,0 +1,24 @@
+/output/
+/tmp/
+/config.json
+__pycache__/
+.vscode/
+/ref/
+/legacy/
+.github/
+kernel_meta/
+offload/
+ckpt_file
+rank_*/
+*.code-workspace
+*.csv
+/mf/
+/.playwright-cli/
+/issues_local/
+.codex
+
+# Local CSDM analysis artifacts
+/analyze_csdm*.py
+/analyze_task23_csdm.py
+/csdm_*_result.json
+/docs/TASK23_CSDM_THESIS_WRITEUP.*

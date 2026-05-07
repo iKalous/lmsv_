@@ -1,0 +1,22 @@
+{
+  "pta": {
+    "loss": 0.9635289,
+    "memory": 38143.95,
+    "time": 21121.2
+  },
+  "msa": {
+    "loss": 1.026078,
+    "memory": 32753.857421875,
+    "time": 8.0
+  },
+  "analysis": {
+    "loss_match": false,
+    "loss_diff": 0.06254910000000002,
+    "memory_diff": 5390.092578124997,
+    "time_diff": 21113.2,
+    "issues": [
+      "Loss不匹配: PTA=0.963529, MSA=1.026078, diff=6.49%"
+    ]
+  },
+  "timestamp": "2026-04-14T02:25:02.431901"
+}

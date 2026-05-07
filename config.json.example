@@ -1,0 +1,105 @@
+{
+  "task_type": 1,
+  "PTA_NAME": "mindspeed",
+  "PTA_PATH": "<YOUR_PTA_PATH>",
+  "MSA_NAME": "msadapter",
+  "MSA_PATH": "<YOUR_MSA_PATH>",
+  "MF_NAME": "mindf_py311",
+  "MINDSPEED_MM_PATH": "<YOUR_MINDSPEED_MM_PATH>",  // MindSpeed-MM 工作区根目录（如 /zyl/mindspeed-mm 或 ../mm-new），自动推导 MindSpeed-MM 子目录
+  "DATASET_ROOT": "<YOUR_DATASET_ROOT>",
+  "SAVE_ABNORMAL_WEIGHTS": true,
+  "tasks": {
+    "1": {
+      "MODEL_NAME": "qwen3",
+      "TOTAL_ITER": 10,
+      "PTA_MAX_RUNTIME": 3000,
+      "MSA_MAX_RUNTIME": 3000,
+      "LOG_INIT_WAIT": 240,
+      "LOG_STABLE_THRESHOLD": 150,
+      "COMPARE_MODE": "pta_msa",
+      "ENABLE_WEIGHT_CONVERT": true,
+      "ENABLE_MF_WEIGHT_LOAD": true,
+      "BASE_SEED": 43,
+      "MUTNM": 2,
+      "SAVE_STEPS": 1,
+      "LOAD_STEPS": 30,
+      "MULTI_NODE": {
+        "ENABLED": false
+      }
+    },
+    "2": {
+      "MODELS": ["qwen2", "qwen2", "qwen2"],
+      "TOTAL_ITER": 100,
+      "PTA_MAX_RUNTIME": 3000,
+      "MSA_MAX_RUNTIME": 3000,
+      "LOG_INIT_WAIT": 240,
+      "LOG_STABLE_THRESHOLD": 150,
+      "BASE_SEED": 43,
+      "SUBMODULES": [3, 4, 5],
+      "MUTNM": 2,
+      "SAVE_STEPS": 1,
+      "LOAD_STEPS": 15,
+      "COMPARE_MODE": "pta_msa",
+      "MF_ARGS_PATH": "assets/runtime/mf_templates/basic.yaml",
+      "ENABLE_MF_WEIGHT_LOAD": false,
+      "MULTI_NODE": {
+        "ENABLED": false
+      }
+    },
+    "3": {
+      "MODELS": ["qwen2", "glm4"],
+      "TOTAL_ITER": 100,
+      "PTA_MAX_RUNTIME": 3000,
+      "MSA_MAX_RUNTIME": 3000,
+      "LOG_INIT_WAIT": 240,
+      "LOG_STABLE_THRESHOLD": 150,
+      "MAX_MUTATION_WAIT": 600,
+      "BASE_SEED": 43,
+      "MUTNM": 2,
+      "SAVE_STEPS": 1,
+      "LOAD_STEPS": 15,
+      "COMPARE_MODE": "pta_msa",
+      "MULTI_NODE": {
+        "ENABLED": false
+      }
+    },
+    "4": {
+      "TOTAL_ITER": 5,
+      "COMPARE_MODE": "pta_msa",
+      "PTA_MAX_RUNTIME": 3000,
+      "MSA_MAX_RUNTIME": 3000,
+      "LOG_INIT_WAIT": 240,
+      "LOG_STABLE_THRESHOLD": 150,
+      "SAVE_STEPS": 1,
+      "RUN_STEPS": 20,
+      "MULTI_NODE": {
+        "ENABLED": false
+      }
+    },
+    "5": {
+      "TOTAL_ITER": 5,
+      "COMPARE_MODE": "pta_msa",
+      "PTA_MAX_RUNTIME": 3000,
+      "MSA_MAX_RUNTIME": 3000,
+      "LOG_INIT_WAIT": 240,
+      "LOG_STABLE_THRESHOLD": 150,
+      "SAVE_STEPS": 1,
+      "RUN_STEPS": 20,
+      "MUTATE_STEPS": 10,
+      "MODULE_TYPE": "all",
+      "MULTI_NODE": {
+        "ENABLED": false
+      }
+    },
+    "6": {
+      "MODEL_NAME": "internvl3",
+      "TOTAL_ITER": 10,
+      "MUTNM": 2,
+      "COMPARE_MODE": "pta_msa",
+      "TRAIN_ITER": 5,
+      "BASE_SEED": 43,
+      "PTA_MAX_RUNTIME": 3000,
+      "MSA_MAX_RUNTIME": 3000
+    }
+  }
+}

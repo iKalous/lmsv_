@@ -1,0 +1,26 @@
+{
+  "task_type": 6,
+  "iteration": 1,
+  "model": "cogvideox",
+  "overall_status": "PASS",
+  "reason": "Analysis issues: ['Loss不匹配: PTA=0.963529, MSA=1.026078, diff=6.49%']",
+  "components": {
+    "MUTATE": "PASS",
+    "PTA_VERIFY": "PASS",
+    "MSA_VERIFY": "PASS",
+    "ANALYSIS": "FAIL"
+  },
+  "metrics_summary": {
+    "pta_loss": 0.9635289,
+    "pta_memory": 38143.95,
+    "pta_time": 21121.2,
+    "msa_loss": 1.026078,
+    "msa_memory": 32753.857421875,
+    "msa_time": 8.0,
+    "loss_diff": 0.06254910000000002,
+    "issues": [
+      "Loss不匹配: PTA=0.963529, MSA=1.026078, diff=6.49%"
+    ]
+  },
+  "updated_at": "2026-04-14 02:25:02"
+}

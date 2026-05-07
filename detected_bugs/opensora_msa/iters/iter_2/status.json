@@ -1,0 +1,27 @@
+{
+  "task_type": 6,
+  "iteration": 2,
+  "model": "opensora",
+  "overall_status": "PASS",
+  "reason": "MSA verification failed: TypeError: 'UntypedStorage' object is not callable during safetensors model loading",
+  "components": {
+    "MUTATE": "PASS",
+    "PTA_VERIFY": "PASS",
+    "MSA_VERIFY": "FAIL",
+    "ANALYSIS": "FAIL"
+  },
+  "metrics_summary": {
+    "pta_loss": null,
+    "pta_memory": 30379.05,
+    "pta_time": 121866.0,
+    "msa_loss": null,
+    "msa_memory": null,
+    "msa_time": null,
+    "loss_diff": 0.0,
+    "issues": [
+      "TypeError: 'UntypedStorage' object is not callable",
+      "OSError: Unable to load weights from checkpoint file for '/data2/dataset/opensora1.2/sd-vae-ft-ema/diffusion_pytorch_model.safetensors'"
+    ]
+  },
+  "updated_at": "2026-04-13 18:41:00"
+}

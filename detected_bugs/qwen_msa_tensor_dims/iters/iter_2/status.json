@@ -1,0 +1,27 @@
+{
+  "task_type": 6,
+  "iteration": 2,
+  "model": "qwenvl",
+  "overall_status": "PASS",
+  "reason": "MSA verification failed: RuntimeError: aclnnInplaceCopyGetWorkspaceSize call failed, please check! AclNN_Parameter_Error(EZ1001): The self tensor cannot be larger than 8 dimensions.",
+  "components": {
+    "MUTATE": "PASS",
+    "PTA_VERIFY": "PASS",
+    "MSA_VERIFY": "FAIL",
+    "ANALYSIS": "FAIL"
+  },
+  "metrics_summary": {
+    "pta_loss": null,
+    "pta_memory": 0.0,
+    "pta_time": 72763.0,
+    "msa_loss": null,
+    "msa_memory": null,
+    "msa_time": null,
+    "loss_diff": 0.0,
+    "issues": [
+      "RuntimeError: aclnnInplaceCopyGetWorkspaceSize call failed, please check!",
+      "AclNN_Parameter_Error(EZ1001): The self tensor cannot be larger than 8 dimensions."
+    ]
+  },
+  "updated_at": "2026-04-13 18:29:00"
+}

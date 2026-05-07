@@ -1,0 +1,23 @@
+{
+  "pta": {
+    "loss": null,
+    "memory": 0.0,
+    "time": 72763.0
+  },
+  "msa": {
+    "loss": null,
+    "memory": null,
+    "time": null
+  },
+  "analysis": {
+    "loss_match": true,
+    "loss_diff": 0.0,
+    "memory_diff": 0.0,
+    "time_diff": 0.0,
+    "issues": [
+      "RuntimeError: aclnnInplaceCopyGetWorkspaceSize call failed, please check!",
+      "AclNN_Parameter_Error(EZ1001): The self tensor cannot be larger than 8 dimensions."
+    ]
+  },
+  "timestamp": "2026-04-13T18:29:00"
+}
